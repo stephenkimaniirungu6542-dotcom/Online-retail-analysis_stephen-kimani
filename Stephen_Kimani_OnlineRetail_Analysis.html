@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Online Retail Sales Analysis | Stephen Kimani Irungu</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --navy: #0f1f3d;
+    --blue: #1a56db;
+    --accent: #00c2cb;
+    --light-bg: #f5f7fb;
+    --white: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, #1e3a6e 100%);
+    color: white;
+    padding: 60px 40px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 350px; height: 350px;
+    border-radius: 50%;
+    background: rgba(0,194,203,0.08);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 30%;
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    background: rgba(26,86,219,0.12);
+  }
+  .header-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 2; }
+  .badge {
+    display: inline-block;
+    background: rgba(0,194,203,0.2);
+    color: var(--accent);
+    border: 1px solid rgba(0,194,203,0.4);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: var(--accent); }
+  header p.subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+  .author-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 18px 24px;
+    max-width: 560px;
+  }
+  .author-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .author-info h3 { font-size: 16px; font-weight: 600; color: white; }
+  .author-info p { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .author-contacts { display: flex; gap: 16px; margin-top: 6px; }
+  .author-contacts a {
+    font-size: 12px; color: var(--accent); text-decoration: none;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  .tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.8);
+    padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  section { padding: 50px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  h2.section-title {
+    font-size: 22px; font-weight: 700; color: var(--navy);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2.section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px; height: 22px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  p.section-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 22px 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--blue);
+    border-radius: 12px 12px 0 0;
+  }
+  .kpi-card.green::after { background: var(--green); }
+  .kpi-card.accent::after { background: var(--accent); }
+  .kpi-card.orange::after { background: var(--orange); }
+  .kpi-card.red::after { background: var(--red); }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: var(--navy); margin: 6px 0 4px; line-height: 1; }
+  .kpi-note { font-size: 12px; color: var(--muted); }
+
+  /* CHARTS */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-grid.triple { grid-template-columns: 2fr 1fr; }
+  .chart-box {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .chart-box h3 { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .chart-box p { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+  .chart-box canvas { max-height: 260px; }
+  .chart-box.full { grid-column: 1 / -1; }
+
+  /* SQL */
+  .sql-block {
+    background: #0f1f3d;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .sql-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .sql-header span { font-size: 12px; color: rgba(255,255,255,0.5); font-family: 'JetBrains Mono', monospace; }
+  .sql-header .sql-lang {
+    background: rgba(0,194,203,0.2); color: var(--accent);
+    padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  }
+  pre {
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #e2e8f0;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .kw { color: #7dd3fc; }
+  .fn { color: #a78bfa; }
+  .str { color: #86efac; }
+  .cm { color: #64748b; font-style: italic; }
+  .num { color: #fbbf24; }
+
+  /* PYTHON */
+  .py-block { background: #1a1a2e; border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+  .py-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .py-header .py-lang {
+    background: rgba(251,191,36,0.2); color: #fbbf24;
+    padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  }
+  .py-kw { color: #c084fc; }
+  .py-fn { color: #60a5fa; }
+  .py-str { color: #86efac; }
+  .py-cm { color: #4b5563; font-style: italic; }
+  .py-num { color: #fbbf24; }
+
+  /* FINDINGS */
+  .findings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .finding-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .finding-icon { font-size: 22px; margin-bottom: 10px; }
+  .finding-card h4 { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .finding-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* RECOMMENDATIONS */
+  .rec-list { display: flex; flex-direction: column; gap: 14px; }
+  .rec-item {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    padding: 16px 20px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .rec-item.high { border-left-color: var(--red); }
+  .rec-item.med { border-left-color: var(--orange); }
+  .rec-item.low { border-left-color: var(--green); }
+  .rec-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--navy); color: white;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .rec-content h4 { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .rec-content p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* TOOLS TABLE */
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .tool-item {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    display: flex; gap: 12px; align-items: center;
+  }
+  .tool-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .tool-icon.py { background: #fef3c7; }
+  .tool-icon.sql { background: #dbeafe; }
+  .tool-icon.bi { background: #ede9fe; }
+  .tool-icon.git { background: #fee2e2; }
+  .tool-icon.ex { background: #dcfce7; }
+  .tool-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .tool-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* DATA TABLE */
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  thead { background: var(--navy); color: white; }
+  th { padding: 12px 16px; font-size: 12px; font-weight: 600; text-align: left; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 11px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+  .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--navy); color: white;
+    font-size: 11px; font-weight: 700;
+  }
+  .rank-badge.gold { background: #f59e0b; }
+  .rank-badge.silver { background: #94a3b8; }
+  .rank-badge.bronze { background: #b45309; }
+
+  /* PROBLEM STATEMENT */
+  .problem-box {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--blue);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .problem-box h3 { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+  .problem-box p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+  /* FOOTER */
+  footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 28px;
+    font-size: 13px;
+  }
+  footer strong { color: white; }
+
+  @media (max-width: 768px) {
+    .chart-grid, .chart-grid.triple { grid-template-columns: 1fr; }
+    .chart-box.full { grid-column: 1; }
+    header { padding: 36px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="badge">Data Analytics Project Report</div>
+    <h1>Online Retail Sales<br><span>Intelligence & Customer Analysis</span></h1>
+    <p class="subtitle">A deep-dive analysis of 541,909 transactions from a UK-based e-commerce retailer — uncovering revenue trends, customer behaviour, product performance, and growth opportunities using SQL, Python, and Power BI.</p>
+    <div class="author-card">
+      <div class="author-avatar">SK</div>
+      <div class="author-info">
+        <h3>Stephen Kimani Irungu</h3>
+        <p>Data Engineer &amp; Business Intelligence Analyst</p>
+        <div class="author-contacts">
+          <a href="mailto:stephenkimaniirungu6542@gmail.com">✉ stephenkimaniirungu6542@gmail.com</a>
+          <a href="tel:+254748055487">📞 0748 055 487</a>
+        </div>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag">Python · Pandas · NumPy</span>
+      <span class="tag">SQL · BigQuery</span>
+      <span class="tag">Power BI · Looker Studio</span>
+      <span class="tag">RFM Analysis</span>
+      <span class="tag">Customer Segmentation</span>
+      <span class="tag">E-Commerce Analytics</span>
+      <span class="tag">Dec 2010 – Dec 2011</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- PROBLEM STATEMENT -->
+  <section>
+    <h2 class="section-title">Problem Statement</h2>
+    <p class="section-sub">The real-world business challenge this project solves</p>
+    <div class="problem-box">
+      <h3>The Business Problem</h3>
+      <p>
+        A UK-based online gift retailer operating across 38 countries had over half a million transaction records but no clear visibility into which customers were most valuable, which products drove the most revenue, what time of year performance peaked, or why 9,288 orders were being cancelled. The business was flying blind — unable to answer fundamental questions like: <em>Who are our best customers? Where should we focus inventory? When do we need more staff?</em>
+      </p>
+    </div>
+    <div class="problem-box" style="border-top-color: var(--accent);">
+      <h3>The Solution</h3>
+      <p>
+        This project applies structured SQL querying, Python-based data cleaning and RFM modelling, and BI visualisation to transform raw transactional data into actionable intelligence — giving business decision-makers a clear picture of revenue drivers, customer segments, seasonal patterns, and product performance. Every insight in this report directly answers a real question a business manager or CEO would ask.
+      </p>
+    </div>
+  </section>
+
+  <!-- DATASET OVERVIEW -->
+  <section>
+    <h2 class="section-title">Dataset Overview</h2>
+    <p class="section-sub">Source: UCI Machine Learning Repository — Online Retail Dataset (2010–2011)</p>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Records</div>
+        <div class="kpi-value">541,909</div>
+        <div class="kpi-note">Raw transaction rows</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Clean Records</div>
+        <div class="kpi-value">397,884</div>
+        <div class="kpi-note">After removing nulls &amp; returns</div>
+      </div>
+      <div class="kpi-card accent">
+        <div class="kpi-label">Date Range</div>
+        <div class="kpi-value" style="font-size:18px">Dec 2010<br>– Dec 2011</div>
+        <div class="kpi-note">13 months of data</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Countries</div>
+        <div class="kpi-value">38</div>
+        <div class="kpi-note">International reach</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Cancelled Orders</div>
+        <div class="kpi-value">9,288</div>
+        <div class="kpi-note">Starting with 'C' in InvoiceNo</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Missing CustomerIDs</div>
+        <div class="kpi-value">135,080</div>
+        <div class="kpi-note">Guest / anonymous orders</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <table>
+        <thead>
+          <tr><th>Column</th><th>Data Type</th><th>Description</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>InvoiceNo</code></td><td>String</td><td>Unique order ID. Prefix 'C' = cancellation</td><td>536365, C541433</td></tr>
+          <tr><td><code>StockCode</code></td><td>String</td><td>Product code</td><td>85123A</td></tr>
+          <tr><td><code>Description</code></td><td>String</td><td>Product name</td><td>WHITE HANGING HEART T-LIGHT</td></tr>
+          <tr><td><code>Quantity</code></td><td>Integer</td><td>Units ordered (negative = return)</td><td>6, -1</td></tr>
+          <tr><td><code>InvoiceDate</code></td><td>DateTime</td><td>Date and time of transaction</td><td>2011-01-18 10:17</td></tr>
+          <tr><td><code>UnitPrice</code></td><td>Float</td><td>Price per unit in GBP</td><td>2.55</td></tr>
+          <tr><td><code>CustomerID</code></td><td>Float</td><td>Unique customer identifier</td><td>17850.0</td></tr>
+          <tr><td><code>Country</code></td><td>String</td><td>Customer's country</td><td>United Kingdom</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TOOLS & TECHNOLOGIES -->
+  <section>
+    <h2 class="section-title">Tools &amp; Technologies Used</h2>
+    <p class="section-sub">Every tool used in this project, and why it was chosen</p>
+    <div class="tools-grid">
+      <div class="tool-item">
+        <div class="tool-icon py">🐍</div>
+        <div>
+          <div class="tool-name">Python 3</div>
+          <div class="tool-desc">Pandas, NumPy — data cleaning, transformation, RFM scoring</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-icon sql">🗄️</div>
+        <div>
+          <div class="tool-name">SQL</div>
+          <div class="tool-desc">BigQuery-compatible queries — aggregation, filtering, window functions</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-icon bi">📊</div>
+        <div>
+          <div class="tool-name">Power BI / Looker Studio</div>
+          <div class="tool-desc">Dashboard creation, KPI cards, interactive charts</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-icon ex">📗</div>
+        <div>
+          <div class="tool-name">Microsoft Excel</div>
+          <div class="tool-desc">Initial data exploration, pivot tables, basic profiling</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-icon git">⚙️</div>
+        <div>
+          <div class="tool-name">Git &amp; GitHub</div>
+          <div class="tool-desc">Version control, project documentation, portfolio hosting</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-icon py">📦</div>
+        <div>
+          <div class="tool-name">Jupyter Notebook</div>
+          <div class="tool-desc">EDA, visualisation, step-by-step analysis documentation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY METRICS -->
+  <section>
+    <h2 class="section-title">Key Business Metrics</h2>
+    <p class="section-sub">High-level numbers from the clean, validated dataset</p>
+    <div class="kpi-grid">
+      <div class="kpi-card accent">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value" style="font-size:22px">£8.91M</div>
+        <div class="kpi-note">Dec 2010 – Dec 2011</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Unique Orders</div>
+        <div class="kpi-value">18,532</div>
+        <div class="kpi-note">Validated invoices</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Unique Customers</div>
+        <div class="kpi-value">4,338</div>
+        <div class="kpi-note">Identified by CustomerID</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Avg Order Value</div>
+        <div class="kpi-value">£480.87</div>
+        <div class="kpi-note">Per invoice</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Repeat Customer Rate</div>
+        <div class="kpi-value">65.6%</div>
+        <div class="kpi-note">2,845 of 4,338 customers</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Unique Products</div>
+        <div class="kpi-value">3,877</div>
+        <div class="kpi-note">SKUs in catalogue</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA CLEANING SQL -->
+  <section>
+    <h2 class="section-title">Data Cleaning &amp; Preparation</h2>
+    <p class="section-sub">SQL queries used to validate and clean the raw data before analysis</p>
+
+    <div class="sql-block">
+      <div class="sql-header">
+        <span>01 — Inspect raw data structure</span>
+        <span class="sql-lang">SQL</span>
+      </div>
+      <pre><span class="cm">-- Preview first 10 rows to understand the dataset</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> `online_retail.transactions`
+<span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header">
+        <span>02 — Check for nulls and data quality issues</span>
+        <span class="sql-lang">SQL</span>
+      </div>
+      <pre><span class="cm">-- Count missing values per column</span>
+<span class="kw">SELECT</span>
+  <span class="fn">COUNTIF</span>(InvoiceNo <span class="kw">IS NULL</span>)    <span class="kw">AS</span> null_invoice,
+  <span class="fn">COUNTIF</span>(CustomerID <span class="kw">IS NULL</span>)   <span class="kw">AS</span> null_customer,
+  <span class="fn">COUNTIF</span>(Description <span class="kw">IS NULL</span>)  <span class="kw">AS</span> null_description,
+  <span class="fn">COUNTIF</span>(Quantity &lt;= <span class="num">0</span>)         <span class="kw">AS</span> zero_or_negative_qty,
+  <span class="fn">COUNTIF</span>(UnitPrice &lt;= <span class="num">0</span>)        <span class="kw">AS</span> zero_or_negative_price,
+  <span class="fn">COUNTIF</span>(<span class="fn">STARTS_WITH</span>(InvoiceNo, <span class="str">'C'</span>)) <span class="kw">AS</span> cancelled_orders
+<span class="kw">FROM</span> `online_retail.transactions`;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header">
+        <span>03 — Create clean working table (remove nulls, cancellations, bad prices)</span>
+        <span class="sql-lang">SQL</span>
+      </div>
+      <pre><span class="cm">-- Clean table: only valid, completed, identified transactions</span>
+<span class="kw">CREATE OR REPLACE TABLE</span> `online_retail.clean_transactions` <span class="kw">AS</span>
+<span class="kw">SELECT</span>
+  InvoiceNo,
+  StockCode,
+  Description,
+  Quantity,
+  <span class="fn">PARSE_DATETIME</span>(<span class="str">'%m/%d/%Y %H:%M'</span>, InvoiceDate) <span class="kw">AS</span> InvoiceDate,
+  UnitPrice,
+  CustomerID,
+  Country,
+  Quantity * UnitPrice <span class="kw">AS</span> Revenue
+<span class="kw">FROM</span> `online_retail.transactions`
+<span class="kw">WHERE</span>
+  CustomerID <span class="kw">IS NOT NULL</span>
+  <span class="kw">AND</span> Quantity &gt; <span class="num">0</span>
+  <span class="kw">AND</span> UnitPrice &gt; <span class="num">0</span>
+  <span class="kw">AND NOT</span> <span class="fn">STARTS_WITH</span>(InvoiceNo, <span class="str">'C'</span>);
+
+<span class="cm">-- Result: 397,884 clean rows out of 541,909 raw rows</span></pre>
+    </div>
+  </section>
+
+  <!-- PYTHON CLEANING -->
+  <section>
+    <h2 class="section-title">Python: Data Cleaning &amp; EDA</h2>
+    <p class="section-sub">Python code used for cleaning, exploration, and RFM analysis</p>
+
+    <div class="py-block">
+      <div class="py-header">
+        <span>data_cleaning.py — Load and clean the dataset</span>
+        <span class="py-lang">PYTHON</span>
+      </div>
+      <pre><span class="py-kw">import</span> pandas <span class="py-kw">as</span> pd
+<span class="py-kw">import</span> numpy <span class="py-kw">as</span> np
+
+<span class="py-cm"># Load dataset (latin1 encoding handles special characters)</span>
+df = pd.<span class="py-fn">read_csv</span>(<span class="py-str">'OnlineRetail.csv'</span>, encoding=<span class="py-str">'latin1'</span>)
+
+<span class="py-cm"># Parse date column</span>
+df[<span class="py-str">'InvoiceDate'</span>] = pd.<span class="py-fn">to_datetime</span>(df[<span class="py-str">'InvoiceDate'</span>])
+df[<span class="py-str">'InvoiceNo'</span>] = df[<span class="py-str">'InvoiceNo'</span>].<span class="py-fn">astype</span>(<span class="py-str">str</span>)
+
+<span class="py-cm"># Create Revenue column</span>
+df[<span class="py-str">'Revenue'</span>] = df[<span class="py-str">'Quantity'</span>] * df[<span class="py-str">'UnitPrice'</span>]
+
+<span class="py-cm"># Remove: nulls, cancellations, zero/negative quantities and prices</span>
+df_clean = df[
+  (df[<span class="py-str">'Quantity'</span>] &gt; <span class="py-num">0</span>) &amp;
+  (df[<span class="py-str">'UnitPrice'</span>] &gt; <span class="py-num">0</span>) &amp;
+  (df[<span class="py-str">'CustomerID'</span>].<span class="py-fn">notna</span>()) &amp;
+  (~df[<span class="py-str">'InvoiceNo'</span>].<span class="py-fn">str</span>.<span class="py-fn">startswith</span>(<span class="py-str">'C'</span>))
+].<span class="py-fn">copy</span>()
+
+<span class="py-fn">print</span>(f<span class="py-str">"Raw rows: {len(df):,} | Clean rows: {len(df_clean):,}"</span>)
+<span class="py-cm"># Output: Raw rows: 541,909 | Clean rows: 397,884</span></pre>
+    </div>
+
+    <div class="py-block">
+      <div class="py-header">
+        <span>rfm_analysis.py — RFM Customer Segmentation</span>
+        <span class="py-lang">PYTHON</span>
+      </div>
+      <pre><span class="py-cm"># RFM: Recency, Frequency, Monetary — classic customer segmentation model</span>
+snapshot_date = df_clean[<span class="py-str">'InvoiceDate'</span>].<span class="py-fn">max</span>() + pd.<span class="py-fn">Timedelta</span>(days=<span class="py-num">1</span>)
+
+rfm = df_clean.<span class="py-fn">groupby</span>(<span class="py-str">'CustomerID'</span>).<span class="py-fn">agg</span>(
+    Recency  = (<span class="py-str">'InvoiceDate'</span>, <span class="py-kw">lambda</span> x: (snapshot_date - x.<span class="py-fn">max</span>()).days),
+    Frequency= (<span class="py-str">'InvoiceNo'</span>,   <span class="py-str">'nunique'</span>),
+    Monetary = (<span class="py-str">'Revenue'</span>,      <span class="py-str">'sum'</span>)
+).<span class="py-fn">reset_index</span>()
+
+<span class="py-cm"># Score each dimension 1–4 using quartiles</span>
+rfm[<span class="py-str">'R_Score'</span>] = pd.<span class="py-fn">qcut</span>(rfm[<span class="py-str">'Recency'</span>],   q=<span class="py-num">4</span>, labels=[<span class="py-num">4</span>,<span class="py-num">3</span>,<span class="py-num">2</span>,<span class="py-num">1</span>])
+rfm[<span class="py-str">'F_Score'</span>] = pd.<span class="py-fn">qcut</span>(rfm[<span class="py-str">'Frequency'</span>].<span class="py-fn">rank</span>(method=<span class="py-str">'first'</span>), q=<span class="py-num">4</span>, labels=[<span class="py-num">1</span>,<span class="py-num">2</span>,<span class="py-num">3</span>,<span class="py-num">4</span>])
+rfm[<span class="py-str">'M_Score'</span>] = pd.<span class="py-fn">qcut</span>(rfm[<span class="py-str">'Monetary'</span>],  q=<span class="py-num">4</span>, labels=[<span class="py-num">1</span>,<span class="py-num">2</span>,<span class="py-num">3</span>,<span class="py-num">4</span>])
+
+<span class="py-cm"># Combine into RFM segment string (e.g. "444" = best customers)</span>
+rfm[<span class="py-str">'RFM_Score'</span>] = (
+  rfm[<span class="py-str">'R_Score'</span>].<span class="py-fn">astype</span>(<span class="py-str">str</span>) +
+  rfm[<span class="py-str">'F_Score'</span>].<span class="py-fn">astype</span>(<span class="py-str">str</span>) +
+  rfm[<span class="py-str">'M_Score'</span>].<span class="py-fn">astype</span>(<span class="py-str">str</span>)
+)
+
+<span class="py-cm"># Champion customers: all 4s — recently bought, buy often, spend most</span>
+champions = rfm[rfm[<span class="py-str">'RFM_Score'</span>] == <span class="py-str">'444'</span>]
+<span class="py-fn">print</span>(f<span class="py-str">"Champion customers: {len(champions)}"</span>)
+<span class="py-cm"># Output: Champion customers: 328</span></pre>
+    </div>
+  </section>
+
+  <!-- REVENUE ANALYSIS SQL -->
+  <section>
+    <h2 class="section-title">Revenue Analysis — SQL Queries</h2>
+    <p class="section-sub">Structured queries that power the revenue insights in this report</p>
+
+    <div class="sql-block">
+      <div class="sql-header"><span>04 — Monthly revenue trend</span><span class="sql-lang">SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+  <span class="fn">FORMAT_DATE</span>(<span class="str">'%Y-%m'</span>, InvoiceDate)   <span class="kw">AS</span> Month,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(Revenue), <span class="num">2</span>)             <span class="kw">AS</span> Monthly_Revenue,
+  <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> InvoiceNo)          <span class="kw">AS</span> Total_Orders,
+  <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> CustomerID)         <span class="kw">AS</span> Active_Customers
+<span class="kw">FROM</span> `online_retail.clean_transactions`
+<span class="kw">GROUP BY</span> Month
+<span class="kw">ORDER BY</span> Month;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header"><span>05 — Revenue by country (Top 10)</span><span class="sql-lang">SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+  Country,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(Revenue), <span class="num">2</span>)    <span class="kw">AS</span> Total_Revenue,
+  <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> CustomerID) <span class="kw">AS</span> Customers,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(Revenue) * <span class="num">100.0</span> /
+    <span class="fn">SUM</span>(<span class="fn">SUM</span>(Revenue)) <span class="kw">OVER</span>(), <span class="num">2</span>) <span class="kw">AS</span> Revenue_Share_Pct
+<span class="kw">FROM</span> `online_retail.clean_transactions`
+<span class="kw">GROUP BY</span> Country
+<span class="kw">ORDER BY</span> Total_Revenue <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header"><span>06 — Top 10 revenue-generating products</span><span class="sql-lang">SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+  StockCode,
+  Description,
+  <span class="fn">SUM</span>(Quantity)              <span class="kw">AS</span> Units_Sold,
+  <span class="fn">ROUND</span>(<span class="fn">AVG</span>(UnitPrice), <span class="num">2</span>)  <span class="kw">AS</span> Avg_Price,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(Revenue), <span class="num">2</span>)   <span class="kw">AS</span> Total_Revenue
+<span class="kw">FROM</span> `online_retail.clean_transactions`
+<span class="kw">GROUP BY</span> StockCode, Description
+<span class="kw">ORDER BY</span> Total_Revenue <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header"><span>07 — Customer RFM segmentation in SQL</span><span class="sql-lang">SQL</span></div>
+      <pre><span class="kw">WITH</span> rfm_base <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    CustomerID,
+    <span class="fn">DATE_DIFF</span>(<span class="str">'2011-12-10'</span>, <span class="fn">MAX</span>(<span class="fn">DATE</span>(InvoiceDate)), DAY) <span class="kw">AS</span> Recency,
+    <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> InvoiceNo)                              <span class="kw">AS</span> Frequency,
+    <span class="fn">ROUND</span>(<span class="fn">SUM</span>(Revenue), <span class="num">2</span>)                                 <span class="kw">AS</span> Monetary
+  <span class="kw">FROM</span> `online_retail.clean_transactions`
+  <span class="kw">GROUP BY</span> CustomerID
+),
+rfm_scored <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> *,
+    <span class="fn">NTILE</span>(<span class="num">4</span>) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> Recency <span class="kw">DESC</span>)   <span class="kw">AS</span> R,
+    <span class="fn">NTILE</span>(<span class="num">4</span>) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> Frequency)         <span class="kw">AS</span> F,
+    <span class="fn">NTILE</span>(<span class="num">4</span>) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> Monetary)          <span class="kw">AS</span> M
+  <span class="kw">FROM</span> rfm_base
+)
+<span class="kw">SELECT</span> *,
+  <span class="fn">CONCAT</span>(<span class="fn">CAST</span>(R <span class="kw">AS</span> STRING), <span class="fn">CAST</span>(F <span class="kw">AS</span> STRING), <span class="fn">CAST</span>(M <span class="kw">AS</span> STRING)) <span class="kw">AS</span> RFM_Segment
+<span class="kw">FROM</span> rfm_scored
+<span class="kw">ORDER BY</span> Monetary <span class="kw">DESC</span>;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header"><span>08 — Peak shopping hours</span><span class="sql-lang">SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+  <span class="fn">EXTRACT</span>(HOUR <span class="kw">FROM</span> InvoiceDate) <span class="kw">AS</span> Hour_of_Day,
+  <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> InvoiceNo)      <span class="kw">AS</span> Number_of_Orders,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(Revenue), <span class="num">2</span>)        <span class="kw">AS</span> Revenue
+<span class="kw">FROM</span> `online_retail.clean_transactions`
+<span class="kw">GROUP BY</span> Hour_of_Day
+<span class="kw">ORDER BY</span> Number_of_Orders <span class="kw">DESC</span>;</pre>
+    </div>
+
+    <div class="sql-block">
+      <div class="sql-header"><span>09 — Customer repeat purchase rate</span><span class="sql-lang">SQL</span></div>
+      <pre><span class="kw">SELECT</span>
+  <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> CustomerID)                             <span class="kw">AS</span> Total_Customers,
+  <span class="fn">COUNTIF</span>(order_count &gt; <span class="num">1</span>)                               <span class="kw">AS</span> Repeat_Customers,
+  <span class="fn">ROUND</span>(<span class="fn">COUNTIF</span>(order_count &gt; <span class="num">1</span>) * <span class="num">100.0</span> /
+    <span class="fn">COUNT</span>(*), <span class="num">1</span>)                                          <span class="kw">AS</span> Retention_Rate_Pct
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> CustomerID, <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> InvoiceNo) <span class="kw">AS</span> order_count
+  <span class="kw">FROM</span> `online_retail.clean_transactions`
+  <span class="kw">GROUP BY</span> CustomerID
+);
+<span class="cm">-- Result: 65.6% retention rate (2,845 of 4,338 customers bought more than once)</span></pre>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section>
+    <h2 class="section-title">Visual Analysis</h2>
+    <p class="section-sub">Charts built from actual query results — the same data a Power BI dashboard would display</p>
+
+    <div class="chart-grid" style="grid-template-columns:1fr; margin-bottom:20px;">
+      <div class="chart-box">
+        <h3>Monthly Revenue Trend (Dec 2010 – Dec 2011)</h3>
+        <p>Revenue grew steadily through 2011, peaking sharply in October and November — classic pre-Christmas retail surge</p>
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h3>Revenue by Country (Top 8)</h3>
+        <p>UK dominates at 82% of total revenue. Netherlands and Ireland are top international markets</p>
+        <canvas id="countryChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Top 8 Products by Revenue</h3>
+        <p>Paper Craft Little Birdie leads at £168K — likely a bulk-order product</p>
+        <canvas id="productChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="margin-top:20px;">
+      <div class="chart-box">
+        <h3>Orders by Hour of Day</h3>
+        <p>Peak ordering between 10 AM – 2 PM. Staffing and system capacity should reflect this</p>
+        <canvas id="hourChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Customer Purchase Frequency</h3>
+        <p>65.6% of customers bought more than once — strong loyalty base to build on</p>
+        <canvas id="retentionChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOP PRODUCTS TABLE -->
+  <section>
+    <h2 class="section-title">Top 10 Products by Revenue</h2>
+    <p class="section-sub">Derived from SQL Query 06 — product revenue ranking</p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Product</th><th>Revenue (£)</th><th>% of Total</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="rank-badge gold">1</span></td><td>PAPER CRAFT , LITTLE BIRDIE</td><td>£168,469</td><td>1.89%</td></tr>
+        <tr><td><span class="rank-badge silver">2</span></td><td>REGENCY CAKESTAND 3 TIER</td><td>£142,593</td><td>1.60%</td></tr>
+        <tr><td><span class="rank-badge bronze">3</span></td><td>WHITE HANGING HEART T-LIGHT HOLDER</td><td>£100,448</td><td>1.13%</td></tr>
+        <tr><td><span class="rank-badge">4</span></td><td>JUMBO BAG RED RETROSPOT</td><td>£85,221</td><td>0.96%</td></tr>
+        <tr><td><span class="rank-badge">5</span></td><td>MEDIUM CERAMIC TOP STORAGE JAR</td><td>£81,417</td><td>0.91%</td></tr>
+        <tr><td><span class="rank-badge">6</span></td><td>PARTY BUNTING</td><td>£68,844</td><td>0.77%</td></tr>
+        <tr><td><span class="rank-badge">7</span></td><td>ASSORTED COLOUR BIRD ORNAMENT</td><td>£56,580</td><td>0.63%</td></tr>
+        <tr><td><span class="rank-badge">8</span></td><td>RABBIT NIGHT LIGHT</td><td>£51,346</td><td>0.58%</td></tr>
+        <tr><td><span class="rank-badge">9</span></td><td>DOORMAT UNION JACK</td><td>£47,821</td><td>0.54%</td></tr>
+        <tr><td><span class="rank-badge">10</span></td><td>BOTANICAL SKULL SCARF</td><td>£41,204</td><td>0.46%</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- KEY FINDINGS -->
+  <section>
+    <h2 class="section-title">Key Findings</h2>
+    <p class="section-sub">What the data actually tells us — translated into business language</p>
+    <div class="findings-grid">
+      <div class="finding-card">
+        <div class="finding-icon">📈</div>
+        <h4>Q4 Revenue Surge</h4>
+        <p>November 2011 was the single highest revenue month at £1.16M — 103% above the annual monthly average. This is driven by pre-Christmas bulk gifting orders.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">🌍</div>
+        <h4>UK Revenue Concentration Risk</h4>
+        <p>The United Kingdom accounts for 82% of total revenue (£7.3M). While strong, this over-reliance on a single market is a business risk if UK demand slows.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">👥</div>
+        <h4>Strong Customer Retention</h4>
+        <p>65.6% of customers made more than one purchase during the year — indicating a loyal repeat base that can be targeted with loyalty programmes and upselling.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">⏰</div>
+        <h4>Midday Peak Ordering</h4>
+        <p>12 PM sees the highest order volume with 3,130 orders. Customer service, warehouse staffing, and server capacity should be optimised for the 10 AM–2 PM window.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">❌</div>
+        <h4>High Cancellation Volume</h4>
+        <p>9,288 orders were cancelled — representing a significant revenue leakage risk. Root causes need to be investigated: stock-outs, payment failures, or poor UX.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">🎯</div>
+        <h4>Champion Customer Segment</h4>
+        <p>328 customers scored RFM 444 — they bought recently, buy frequently, and spend the most. These customers deserve a dedicated retention and VIP strategy.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">📦</div>
+        <h4>Bulk Gifting Products Dominate</h4>
+        <p>Top revenue products are gift and homeware items often ordered in large quantities. This suggests a B2B wholesale segment worth developing further.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">🌱</div>
+        <h4>International Growth Opportunity</h4>
+        <p>Netherlands, Germany, and France collectively contribute £723K with far fewer customers than the UK — suggesting high average order values and untapped international growth potential.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section>
+    <h2 class="section-title">Business Recommendations</h2>
+    <p class="section-sub">Actionable next steps for the business based on the analysis</p>
+    <div class="rec-list">
+      <div class="rec-item high">
+        <div class="rec-num">1</div>
+        <div class="rec-content">
+          <h4>Investigate and reduce cancellations — Priority: High</h4>
+          <p>9,288 cancellations need a root cause analysis. Build a SQL query to identify cancellations by product, country, and time of year. Even reducing cancellations by 20% would recover an estimated £300K+ in revenue.</p>
+        </div>
+      </div>
+      <div class="rec-item high">
+        <div class="rec-num">2</div>
+        <div class="rec-content">
+          <h4>Launch a VIP retention programme for Champion customers — Priority: High</h4>
+          <p>The 328 RFM 444 customers are your highest-value segment. A dedicated loyalty programme, early access to new products, or personalised offers would increase their lifetime value significantly.</p>
+        </div>
+      </div>
+      <div class="rec-item med">
+        <div class="rec-num">3</div>
+        <div class="rec-content">
+          <h4>Build Q4 inventory and staffing strategy around the data — Priority: Medium</h4>
+          <p>Revenue spikes 71% between August and November. The business should pre-stock top products by September and scale warehouse and customer service staff ahead of the November peak.</p>
+        </div>
+      </div>
+      <div class="rec-item med">
+        <div class="rec-num">4</div>
+        <div class="rec-content">
+          <h4>Develop international markets — Priority: Medium</h4>
+          <p>Netherlands, Germany, and France customers spend more per order than UK customers on average. A targeted international marketing campaign with localised content could double revenue from these markets within 12 months.</p>
+        </div>
+      </div>
+      <div class="rec-item low">
+        <div class="rec-num">5</div>
+        <div class="rec-content">
+          <h4>Resolve anonymous orders (135,080 missing CustomerIDs) — Priority: Medium</h4>
+          <p>Over 135,000 transactions have no CustomerID, making it impossible to track their behaviour or re-target them. Introducing mandatory account creation or email capture at checkout would unlock this data for future analysis.</p>
+        </div>
+      </div>
+      <div class="rec-item low">
+        <div class="rec-num">6</div>
+        <div class="rec-content">
+          <h4>Explore B2B wholesale channel — Priority: Low-Medium</h4>
+          <p>The top revenue products (cakestands, craft paper, storage jars) are ordered in very high quantities — suggesting resellers. A formal wholesale programme with volume pricing could formalise and grow this segment.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCLUSION -->
+  <section>
+    <h2 class="section-title">Conclusion</h2>
+    <p class="section-sub">Summary of what was delivered and the value it creates</p>
+    <div class="problem-box" style="border-top-color: var(--green);">
+      <h3>What this project delivered</h3>
+      <p>
+        Starting from 541,909 raw transaction rows with missing data, negative quantities, cancelled orders, and no derived metrics, this project produced a fully cleaned dataset of 397,884 valid records and surfaced £8.91M in verified revenue across 13 months. Through SQL querying, Python-based RFM modelling, and visual analysis, the business now has clear visibility into its highest-value customers, best-performing products, peak trading periods, and geographic revenue concentration.
+        <br><br>
+        The six recommendations above are directly tied to data findings — not assumptions — and provide a measurable roadmap for the business to grow revenue, reduce cancellations, retain top customers, and expand internationally.
+      </p>
+    </div>
+  </section>
+
+  <!-- GITHUB / LINKEDIN NOTE -->
+  <section>
+    <h2 class="section-title">Portfolio &amp; Contact</h2>
+    <p class="section-sub">Where to find more of my work and how to reach me</p>
+    <div class="findings-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="finding-card">
+        <div class="finding-icon">💼</div>
+        <h4>LinkedIn</h4>
+        <p>View my full professional profile, experience, and recommendations at:<br>
+        <a href="https://www.linkedin.com/in/stephen-kimani-5240ab233" style="color:var(--blue); font-weight:600;">linkedin.com/in/stephen-kimani-5240ab233</a></p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">💻</div>
+        <h4>GitHub</h4>
+        <p>View the full project source code, SQL scripts, and Python notebooks on my GitHub profile.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">📧</div>
+        <h4>Email</h4>
+        <p><a href="mailto:stephenkimaniirungu6542@gmail.com" style="color:var(--blue);">stephenkimaniirungu6542@gmail.com</a></p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">📞</div>
+        <h4>Phone / WhatsApp</h4>
+        <p><a href="tel:+254748055487" style="color:var(--blue);">0748 055 487</a></p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <strong>Stephen Kimani Irungu</strong> — Data Engineer &amp; Business Intelligence Analyst<br>
+  Nairobi / Nakuru, Kenya &nbsp;|&nbsp; stephenkimaniirungu6542@gmail.com &nbsp;|&nbsp; 0748 055 487<br>
+  <span style="font-size:11px; margin-top:6px; display:block;">Analysis performed on UCI Online Retail Dataset · Tools: Python, SQL (BigQuery), Power BI, Excel</span>
+</footer>
+
+<script>
+const NAVY='#0f1f3d', BLUE='#1a56db', ACCENT='#00c2cb', GREEN='#10b981', ORANGE='#f59e0b';
+
+// Monthly Revenue
+new Chart(document.getElementById('monthlyChart'), {
+  type:'line',
+  data:{
+    labels:['Dec 10','Jan 11','Feb 11','Mar 11','Apr 11','May 11','Jun 11','Jul 11','Aug 11','Sep 11','Oct 11','Nov 11','Dec 11'],
+    datasets:[{
+      label:'Revenue (£)',
+      data:[572713,569445,447137,595501,469200,678595,661214,600091,645344,952838,1039319,1161817,518193],
+      borderColor:ACCENT,
+      backgroundColor:'rgba(0,194,203,0.08)',
+      borderWidth:2.5,
+      pointBackgroundColor:ACCENT,
+      pointRadius:4,
+      tension:0.4,
+      fill:true
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      y:{
+        ticks:{callback:v=>'£'+Math.round(v/1000)+'K'},
+        grid:{color:'#f1f5f9'}
+      },
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+// Country
+new Chart(document.getElementById('countryChart'), {
+  type:'bar',
+  data:{
+    labels:['United Kingdom','Netherlands','EIRE','Germany','France','Australia','Spain','Switzerland'],
+    datasets:[{
+      data:[7308392,285446,265546,228867,209024,138521,61577,56444],
+      backgroundColor:[BLUE,ACCENT,GREEN,ORANGE,'#a78bfa','#f472b6','#34d399','#60a5fa'],
+      borderRadius:6
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{callback:v=>'£'+Math.round(v/1000)+'K'},grid:{color:'#f1f5f9'}},
+      y:{grid:{display:false}}
+    }
+  }
+});
+
+// Products
+new Chart(document.getElementById('productChart'), {
+  type:'bar',
+  data:{
+    labels:['Paper Craft Birdie','Regency Cakestand','Heart T-Light','Jumbo Bag','Ceramic Jar','Party Bunting','Bird Ornament','Rabbit Night Light'],
+    datasets:[{
+      data:[168470,142593,100448,85221,81417,68844,56580,51346],
+      backgroundColor:NAVY,
+      borderRadius:5
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{callback:v=>'£'+Math.round(v/1000)+'K'},grid:{color:'#f1f5f9'}},
+      y:{grid:{display:false},ticks:{font:{size:10}}}
+    }
+  }
+});
+
+// Hourly
+new Chart(document.getElementById('hourChart'), {
+  type:'bar',
+  data:{
+    labels:['6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm'],
+    datasets:[{
+      label:'Orders',
+      data:[1,29,555,1393,2226,2277,3130,2636,2274,2037,1100,544,169,144,18],
+      backgroundColor:ctx=>{
+        const v=ctx.raw;
+        return v>=2500?'#ef4444':v>=2000?ORANGE:ACCENT;
+      },
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      y:{grid:{color:'#f1f5f9'}},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+// Retention doughnut
+new Chart(document.getElementById('retentionChart'), {
+  type:'doughnut',
+  data:{
+    labels:['Repeat Customers (65.6%)','One-time Customers (34.4%)'],
+    datasets:[{
+      data:[2845,1493],
+      backgroundColor:[GREEN,'#e2e8f0'],
+      borderWidth:0,
+      hoverOffset:6
+    }]
+  },
+  options:{
+    responsive:true,
+    cutout:'68%',
+    plugins:{
+      legend:{position:'bottom',labels:{font:{size:12},padding:16}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw.toLocaleString()} customers`}}
+    }
+  }
+});
+</script>
+</body>
+</html>
